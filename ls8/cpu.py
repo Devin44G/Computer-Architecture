@@ -4,6 +4,10 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+SUB = 0b10100001
+MUL = 0b10100010
+DIV = 0b10100011
+MOD = 0b10100100
 
 
 class CPU:
@@ -59,7 +63,10 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -97,12 +104,19 @@ class CPU:
             inst = self.ram[self.pc]
             if inst == LDI:
                 self.ram_write(self.ram[self.pc + 2], self.ram[self.pc + 1])
-                print(f'Writing value: {self.ram[self.pc + 2]} to Reg index: [{self.ram[self.pc + 1]}]')
                 self.pc += 3
             elif inst == PRN:
                 value = self.ram_read(self.ram[self.pc + 1])
-                print(f'Stored Value at Reg index: [{self.ram[self.pc + 1]}] is:', value)
+                # print(f'Stored Value at Reg index: [{self.ram[self.pc + 2]}] is:', value)
+                print(f'Value: {value}')
                 self.pc += 2
+            elif inst == MUL:
+                # self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
+                value = self.ram_read(self.ram[self.pc + 1])
+                value2 = self.ram_read(self.ram[self.pc + 2])
+                self.reg[self.ram[self.pc + 1]] *= self.reg[self.ram[self.pc + 2]]
+                print(f'Multiplied: {self.reg[self.ram[self.pc + 1]]}')
+                self.pc += 3
             elif inst == HLT:
                 running = False
             else:
