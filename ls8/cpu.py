@@ -7,7 +7,9 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 8
 
     def load(self):
         """Load a program into memory."""
@@ -60,6 +62,33 @@ class CPU:
 
         print()
 
+    def ram_read(self, MAR):
+        return self.reg[MAR]
+
+    def ram_write(self, MDR, MAR):
+        self.reg[MAR] = MDR
+
     def run(self):
         """Run the CPU."""
-        pass
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+
+        running = True
+
+        while running:
+            inst = self.ram[self.pc]
+            if inst == LDI:
+                self.ram_write(self.ram[self.pc + 2], self.ram[self.pc + 1])
+                print(f'Writing value: {self.ram[self.pc + 2]} to Reg index: [{self.ram[self.pc + 1]}]')
+                self.pc += 2
+            elif inst == PRN:
+                value = self.ram_read(self.ram[self.pc + 1])
+                print(f'Stored Value at Reg index: [{self.ram[self.pc + 1]}] is:', value)
+                self.pc += 1
+            elif inst == HLT:
+                running = False
+            else:
+                print(f'Invalid instruction: {inst}')
+
+            self.pc += 1
