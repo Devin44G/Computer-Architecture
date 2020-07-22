@@ -70,8 +70,7 @@ class CPU:
         self.pc += 2
 
     def hlt_handler(self):
-        self.running = False
-        return self.running
+        sys.exit(0)
 
     def mul_handler(self):
         self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
@@ -105,12 +104,11 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        self.running = True
+        running = True
 
-        while self.running:
+        while running:
             inst = self.ram[self.pc]
             if inst in self.branch_table:
                 self.branch_table[inst]()
             else:
-                # print(f'Invalid instruction: {inst}')
                 sys.exit(f'Invalid instruction: {inst}')
