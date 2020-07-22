@@ -8,6 +8,8 @@ SUB = 0b10100001
 MUL = 0b10100010
 DIV = 0b10100011
 MOD = 0b10100100
+PUSH = 0b01000101
+POP = 0b01000110
 
 
 class CPU:
@@ -16,13 +18,16 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.pc = 0
-        self.reg = [0] * 8
-        self.ram = [0] * 256
+        self.SP = 7  # SP - Stack Pointer
+        self.reg = [0] * 8  # reg - Register
+        self.ram = [0] * 256  # ram - Memory
         self.branch_table = {
             LDI: self.ldi_handler,
             PRN: self.prn_handler,
             HLT: self.hlt_handler,
             MUL: self.mul_handler,
+            PUSH: self.push_handler,
+            POP: self.pop_handler,
         }
 
     def load(self):
@@ -60,6 +65,7 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+# NON-MATHEMATICAL DATA HANDLING BELOW:
     def ldi_handler(self):
         self.ram_write(self.ram[self.pc + 2], self.ram[self.pc + 1])
         self.pc += 3
@@ -72,15 +78,38 @@ class CPU:
     def hlt_handler(self):
         sys.exit(0)
 
+# ALU MATHEMATICAL FUNCS BELOW:
     def mul_handler(self):
         self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
         self.pc += 3
 
+# RAM READING/WRITING FUNCS BELOW:
     def ram_read(self, MAR):
         return self.reg[MAR]
 
     def ram_write(self, MDR, MAR):
         self.reg[MAR] = MDR
+
+# STACK IMPLEMENTATION BELOW:
+    def push_handler(self):
+        self.reg[self.SP] -= 1
+        self.reg[self.SP] &= 0xff  # keep R7 in the range 00-FF
+        # get register value
+        reg_num = self.ram[self.pc + 1]
+        value = self.reg[reg_num]
+        address_to_push_to = self.reg[self.SP]
+        self.ram[address_to_push_to] = value
+        self.pc += 2
+
+    def pop_handler(self):
+        address_to_pop_from = self.reg[self.SP]
+        value = self.ram[address_to_pop_from]
+        # Store in the given register
+        reg_num = self.ram[self.pc + 1]
+        self.reg[reg_num] = value
+        # Increment SP
+        self.reg[self.SP] += 1
+        self.pc += 2
 
     def trace(self):
         """
