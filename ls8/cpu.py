@@ -18,6 +18,12 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.branch_table = {
+            LDI: self.ldi_handler,
+            PRN: self.prn_handler,
+            HLT: self.hlt_handler,
+            MUL: self.mul_handler,
+        }
 
     def load(self):
         """Load a program into memory."""
@@ -42,22 +48,6 @@ class CPU:
         except FileNotFoundError:
             print(f'Couldn\'t find file {sys.argv[1]}')
 
-        # For now, we've just hardcoded a program:
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010,  # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111,  # PRN R0
-        #     0b00000000,
-        #     0b00000001,  # HLT
-        # ]
-        #
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -69,6 +59,29 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
+
+    def ldi_handler(self):
+        self.ram_write(self.ram[self.pc + 2], self.ram[self.pc + 1])
+        self.pc += 3
+
+    def prn_handler(self):
+        value = self.ram_read(self.ram[self.pc + 1])
+        print(f'Value: {value}')
+        self.pc += 2
+
+    def hlt_handler(self):
+        self.running = False
+        return self.running
+
+    def mul_handler(self):
+        self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
+    def ram_read(self, MAR):
+        return self.reg[MAR]
+
+    def ram_write(self, MDR, MAR):
+        self.reg[MAR] = MDR
 
     def trace(self):
         """
@@ -90,31 +103,14 @@ class CPU:
 
         print()
 
-    def ram_read(self, MAR):
-        return self.reg[MAR]
-
-    def ram_write(self, MDR, MAR):
-        self.reg[MAR] = MDR
-
     def run(self):
         """Run the CPU."""
-        running = True
+        self.running = True
 
-        while running:
+        while self.running:
             inst = self.ram[self.pc]
-            if inst == LDI:
-                self.ram_write(self.ram[self.pc + 2], self.ram[self.pc + 1])
-                self.pc += 3
-            elif inst == PRN:
-                value = self.ram_read(self.ram[self.pc + 1])
-                # print(f'Stored Value at Reg index: [{self.ram[self.pc + 2]}] is:', value)
-                print(f'Value: {value}')
-                self.pc += 2
-            elif inst == MUL:
-                self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
-                self.pc += 3
-            elif inst == HLT:
-                running = False
+            if inst in self.branch_table:
+                self.branch_table[inst]()
             else:
                 # print(f'Invalid instruction: {inst}')
                 sys.exit(f'Invalid instruction: {inst}')
