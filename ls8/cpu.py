@@ -111,11 +111,7 @@ class CPU:
                 print(f'Value: {value}')
                 self.pc += 2
             elif inst == MUL:
-                # self.alu("MUL", self.ram_read(self.pc + 1), self.ram_read(self.pc + 2))
-                value = self.ram_read(self.ram[self.pc + 1])
-                value2 = self.ram_read(self.ram[self.pc + 2])
-                self.reg[self.ram[self.pc + 1]] *= self.reg[self.ram[self.pc + 2]]
-                print(f'Multiplied: {self.reg[self.ram[self.pc + 1]]}')
+                self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
                 self.pc += 3
             elif inst == HLT:
                 running = False
