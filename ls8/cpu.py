@@ -29,6 +29,7 @@ class CPU:
             PRN: self.prn_handler,
             HLT: self.hlt_handler,
             ADD: self. add_handler,
+            SUB: self.sub_handler,
             MUL: self.mul_handler,
             PUSH: self.push_handler,
             POP: self.pop_handler,
@@ -105,6 +106,10 @@ class CPU:
 # ALU MATHEMATICAL FUNCS BELOW:
     def add_handler(self):
         self.alu("ADD", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
+    def sub_handler(self):
+        self.alu("SUB", self.ram[self.pc + 1], self.ram[self.pc + 2])
         self.pc += 3
 
     def mul_handler(self):
