@@ -4,12 +4,15 @@ import sys
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
+ADD = 0b10100000
 SUB = 0b10100001
 MUL = 0b10100010
 DIV = 0b10100011
 MOD = 0b10100100
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 
 class CPU:
@@ -25,9 +28,12 @@ class CPU:
             LDI: self.ldi_handler,
             PRN: self.prn_handler,
             HLT: self.hlt_handler,
+            ADD: self. add_handler,
             MUL: self.mul_handler,
             PUSH: self.push_handler,
             POP: self.pop_handler,
+            CALL: self.call_handler,
+            RET: self. ret_handler,
         }
 
     def load(self):
@@ -78,7 +84,29 @@ class CPU:
     def hlt_handler(self):
         sys.exit(0)
 
+# CALL/RET FUNCS BELOW:
+    def call_handler(self):
+        return_addr = self.pc + 2
+
+        self.reg[self.SP] -= 1
+        self.ram[self.reg[self.SP]] = return_addr
+
+        reg_num = self.ram[self.pc + 1]
+        subr_addr = self.reg[reg_num]
+
+        self.pc = subr_addr
+
+    def ret_handler(self):
+        return_addr = self.ram[self.reg[self.SP]]
+        self.reg[self.SP] += 1
+
+        self.pc = return_addr
+
 # ALU MATHEMATICAL FUNCS BELOW:
+    def add_handler(self):
+        self.alu("ADD", self.ram[self.pc + 1], self.ram[self.pc + 2])
+        self.pc += 3
+
     def mul_handler(self):
         self.alu("MUL", self.ram[self.pc + 1], self.ram[self.pc + 2])
         self.pc += 3
