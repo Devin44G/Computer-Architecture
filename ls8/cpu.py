@@ -172,17 +172,22 @@ class CPU:
         self.pc += 3
 
     def jmp_handler(self):
-        print('hi')
+        reg_num = self.ram[self.pc + 1]
+        self.pc = self.reg[reg_num]
 
     def jeq_handler(self):
         if self.flag == 0b00000001:
             reg_num = self.ram[self.pc + 1]
             self.pc = self.reg[reg_num]
-
-        self.pc += 2
+        else:
+            self.pc += 2
 
     def jne_handler(self):
-        print('hola')
+        if self.flag != 0b00000001:
+            reg_num = self.ram[self.pc + 1]
+            self.pc = self.reg[reg_num]
+        else:
+            self.pc += 2
 
     def trace(self):
         """
