@@ -13,6 +13,11 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
+# SPRINT INST:
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 
 
 class CPU:
@@ -23,6 +28,7 @@ class CPU:
         self.pc = 0
         self.SP = 7  # SP - Stack Pointer
         self.reg = [0] * 8  # reg - Register
+        self.reg[self.SP] = 0xF4
         self.ram = [0] * 256  # ram - Memory
         self.branch_table = {
             LDI: self.ldi_handler,
@@ -34,7 +40,11 @@ class CPU:
             PUSH: self.push_handler,
             POP: self.pop_handler,
             CALL: self.call_handler,
-            RET: self. ret_handler,
+            RET: self.ret_handler,
+            CMP: self.cmp_handler,
+            JMP: self.jmp_handler,
+            JEQ: self.jeq_handler,
+            JNE: self.jne_handler,
         }
 
     def load(self):
@@ -69,6 +79,13 @@ class CPU:
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "CMP":
+            if reg_a == reg_b:
+                self.flag = 0b00000001
+            elif reg_a < reg_b:
+                self.flag = 0b00000100
+            elif reg_a > reg_b:
+                self.flag = 0b00000010
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -143,6 +160,29 @@ class CPU:
         # Increment SP
         self.reg[self.SP] += 1
         self.pc += 2
+
+# SPRINT IMPLEMENTATIONS BELOW:
+    def cmp_handler(self):
+        # Flags: 00000LGE
+        reg1 = self.ram_read(self.ram[self.pc + 1])
+        reg2 = self.ram_read(self.ram[self.pc + 2])
+
+        self.alu("CMP", reg1, reg2)
+
+        self.pc += 3
+
+    def jmp_handler(self):
+        print('hi')
+
+    def jeq_handler(self):
+        if self.flag == 0b00000001:
+            reg_num = self.ram[self.pc + 1]
+            self.pc = self.reg[reg_num]
+
+        self.pc += 2
+
+    def jne_handler(self):
+        print('hola')
 
     def trace(self):
         """
